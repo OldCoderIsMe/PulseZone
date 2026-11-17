@@ -1,54 +1,168 @@
-const SPORT = {
-  run: { label: '跑步', descriptions: ['恢复与热身', '有氧基础', '节奏训练', '乳酸阈值', '高强度间歇'] },
-  ride: { label: '骑行', descriptions: ['恢复骑', '耐力骑', '节奏骑', '阈值骑', '高强度间歇'] },
-  swim: { label: '游泳', descriptions: ['技术与恢复', '有氧耐力', '持续节奏', '阈值组', '冲刺间歇'] },
-};
-const METHODS = { max: '最大心率法', hrr: '储备心率法', lthr: '乳酸阈值法' };
+import {
+  METHODS,
+  METHOD_BASIS,
+  SPORTS,
+  calculate,
+  calculateComparison,
+  sportDescriptions,
+  validateComparison,
+  validateMethod,
+} from './calculations.mjs';
+
 const ZONE_COLORS = ['#b6d4ff', '#8bc7a8', '#d7f34a', '#ffb13b', '#ff5a36'];
-const MAX_RANGES = [[.50,.60],[.60,.70],[.70,.80],[.80,.90],[.90,1.00]];
-const HRR_RANGES = [[.50,.60],[.60,.70],[.70,.80],[.80,.90],[.90,1.00]];
-const LTHR_RANGES = [[.65,.85],[.85,.90],[.90,.95],[.95,1.00],[1.00,1.06]];
+const ZONE_TAGS = ['EASY', 'BUILD', 'BUILD', 'BUILD', 'HARD'];
 const $ = (selector) => document.querySelector(selector);
 
-function round(value) { return Math.round(value); }
-function maxHrFromAge(age, formula) { return formula === 'fox' ? 220 - age : 208 - 0.7 * age; }
-function rangesFor(method) { return method === 'lthr' ? LTHR_RANGES : method === 'hrr' ? HRR_RANGES : MAX_RANGES; }
-function zoneRange(base, range) { return [round(base * range[0]), round(base * range[1])]; }
-function calculate({ method, age, formula, maxHr, restingHr, lthr }) {
-  let base;
-  let summary;
-  if (method === 'max') {
-    maxHr = maxHrFromAge(age, formula);
-    base = maxHr;
-    summary = [{ label: '估算最大心率', value: round(maxHr), unit: 'bpm' }, { label: '计算依据', value: formula === 'fox' ? 'Fox' : 'Tanaka', unit: '' }, { label: '训练基准', value: 'HRmax', unit: '' }];
-  } else if (method === 'hrr') {
-    base = maxHr - restingHr;
-    summary = [{ label: '心率储备', value: round(base), unit: 'bpm' }, { label: '最大心率', value: round(maxHr), unit: 'bpm' }, { label: '静息心率', value: round(restingHr), unit: 'bpm' }];
-  } else {
-    base = lthr;
-    summary = [{ label: '乳酸阈值心率', value: round(lthr), unit: 'bpm' }, { label: '训练基准', value: 'LTHR', unit: '' }, { label: '适用方式', value: '测试值', unit: '' }];
-  }
-  const ranges = rangesFor(method).map((range) => method === 'hrr' ? [round(restingHr + base * range[0]), round(restingHr + base * range[1])] : zoneRange(base, range));
-  return { summary, ranges, base, maxHr };
-}
-function validate(method) {
-  const error = $('#form-error'); error.textContent = '';
-  if (method === 'max') { const age = Number($('#age').value); if (!Number.isFinite(age) || age < 13 || age > 100) return '请输入 13–100 岁之间的年龄。'; }
-  if (method === 'hrr') { const max = Number($('#max-hr').value); const rest = Number($('#resting-hr').value); if (max < 100 || max > 240 || rest < 30 || rest > 120 || rest >= max) return '请检查最大心率和静息心率，确保数值合理。'; }
-  if (method === 'lthr') { const lthr = Number($('#lthr').value); if (lthr < 100 || lthr > 230) return '请输入 100–230 bpm 之间的乳酸阈值心率。'; }
-  return '';
-}
-function render(result, sport, method) {
-  const sportData = SPORT[sport];
-  $('#result-title').textContent = `${sportData.label} · ${METHODS[method]}`;
-  $('#summary').innerHTML = result.summary.map((item) => `<div class="summary-card"><small>${item.label}</small><strong>${item.value} <em>${item.unit}</em></strong></div>`).join('');
-  $('#zones').innerHTML = result.ranges.map((range, index) => { const width = Math.max(10, Math.min(100, ((range[1] - range[0]) / (result.maxHr || result.base)) * 260)); return `<div class="zone-row"><div class="zone-name" style="color:${ZONE_COLORS[index]}">Z${index + 1}<small>${index === 0 ? 'EASY' : index === 4 ? 'HARD' : 'BUILD'}</small></div><div><div class="zone-bar"><div class="zone-fill" style="--zone-color:${ZONE_COLORS[index]};--width:${width}%"></div></div><div class="zone-desc">${sportData.descriptions[index]}</div></div><div class="zone-values">${range[0]}–${range[1]}<small>bpm</small></div></div>`; }).join('');
-  $('#results').classList.remove('hidden');
-  $('#results').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-function currentMethod() { return document.querySelector('input[name="method"]:checked').value; }
-function switchInputs(method) { ['max','hrr','lthr'].forEach((name) => $(`#inputs-${name}`).classList.toggle('hidden', name !== method)); const help = { max:'使用年龄估算最大心率。推荐使用 Tanaka 公式：208 − 0.7 × 年龄。', hrr:'储备心率法会同时参考最大心率和静息心率，让训练区间更贴近你的实际状态。', lthr:'输入经过测试的乳酸阈值心率。没有测试数据时，可用 30 分钟全力测试的平均心率近似。' }; $('#method-help').textContent = help[method]; }
+const state = { result: null, method: null, sport: 'run', comparison: null };
 
-document.querySelectorAll('input[name="method"]').forEach((input) => input.addEventListener('change', () => switchInputs(currentMethod())));
-document.querySelector('#calculator-form').addEventListener('submit', (event) => { event.preventDefault(); const method = currentMethod(); const error = validate(method); if (error) { $('#form-error').textContent = error; return; } const sport = document.querySelector('input[name="sport"]:checked').value; const result = calculate({ method, age: Number($('#age').value), formula: $('#max-formula').value, maxHr: Number($('#max-hr').value), restingHr: Number($('#resting-hr').value), lthr: Number($('#lthr').value) }); render(result, sport, method); });
-$('#reset-button').addEventListener('click', () => { $('#results').classList.add('hidden'); $('#calculator-form').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+function currentMethod() {
+  return document.querySelector('input[name="method"]:checked').value;
+}
+
+function currentSport() {
+  return document.querySelector('input[name="sport"]:checked').value;
+}
+
+function sportLabel(sport) {
+  return (SPORTS[sport] || SPORTS.run).label;
+}
+
+function formValues() {
+  return {
+    age: $('#age').value,
+    formula: $('#max-formula').value,
+    maxHr: $('#max-hr').value,
+    restingHr: $('#resting-hr').value,
+    lthr: $('#lthr').value,
+  };
+}
+
+function numericValues(values) {
+  return { ...values, age: Number(values.age), maxHr: Number(values.maxHr), restingHr: Number(values.restingHr), lthr: Number(values.lthr) };
+}
+
+function showError(message) {
+  $('#form-error').textContent = message;
+}
+
+function clearError() {
+  $('#form-error').textContent = '';
+}
+
+function hideComparison() {
+  state.comparison = null;
+  $('#comparison').classList.add('hidden');
+}
+
+function zoneMarkup(range, index, descriptions) {
+  const width = Math.max(10, Math.min(100, ((range[1] - range[0]) / 220) * 260));
+  return `<div class="zone-row"><div class="zone-name" style="color:${ZONE_COLORS[index]}">Z${index + 1}<small>${ZONE_TAGS[index]}</small></div><div><div class="zone-bar"><div class="zone-fill" style="--zone-color:${ZONE_COLORS[index]};--width:${width}%"></div></div><div class="zone-desc">${descriptions[index]}</div></div><div class="zone-values">${range[0]}–${range[1]}<small>bpm</small></div></div>`;
+}
+
+function render(result, sport, method, { scroll = true, keepComparison = false } = {}) {
+  const descriptions = sportDescriptions(sport);
+  $('#result-title').textContent = `${sportLabel(sport)} · ${METHODS[method]}`;
+  $('#summary').innerHTML = result.summary.map((item) => `<div class="summary-card"><small>${item.label}</small><strong>${item.value} <em>${item.unit}</em></strong></div>`).join('');
+  $('#zones').innerHTML = result.ranges.map((range, index) => zoneMarkup(range, index, descriptions)).join('');
+  if (!keepComparison) hideComparison();
+  $('#results').classList.remove('hidden');
+  if (scroll) $('#results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function comparisonBasisMarkup(result) {
+  return `<dl class="comparison-basis">${result.basis.map((item) => `<div><dt>${item.label}</dt><dd>${item.value}</dd></div>`).join('')}</dl>`;
+}
+
+function renderComparison(results, sport, { scroll = false } = {}) {
+  const descriptions = sportDescriptions(sport);
+  $('#comparison-sport').textContent = `${sportLabel(sport)} · 同一组数据 · Z1–Z5 并列对比`;
+  $('#comparison-grid').innerHTML = results.map((result, index) => `<article class="comparison-card" aria-label="${METHODS[result.method]}训练区间"><div class="comparison-card-head"><div><span class="comparison-index">0${index + 1}</span><h3>${METHODS[result.method]}</h3></div><p>${METHOD_BASIS[result.method]}</p></div>${comparisonBasisMarkup(result)}<div class="comparison-zones">${result.ranges.map((range, zoneIndex) => `<div class="comparison-zone"><span style="color:${ZONE_COLORS[zoneIndex]}">Z${zoneIndex + 1}</span><strong>${range[0]}–${range[1]}</strong><small>${descriptions[zoneIndex]}</small></div>`).join('')}</div></article>`).join('');
+  $('#comparison').classList.remove('hidden');
+  if (scroll) $('#comparison').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function switchInputs(method) {
+  ['max', 'hrr', 'lthr'].forEach((name) => $(`#inputs-${name}`).classList.toggle('hidden', name !== method));
+  const help = {
+    max: '使用年龄估算最大心率。推荐使用 Tanaka 公式：208 − 0.7 × 年龄。',
+    hrr: '储备心率法会同时参考最大心率和静息心率，让训练区间更贴近你的实际状态。',
+    lthr: '输入经过测试的乳酸阈值心率。没有测试数据时，可用 30 分钟全力测试的平均心率近似。',
+  };
+  $('#method-help').textContent = help[method];
+}
+
+function syncComparisonSport() {
+  if (!state.comparison) return;
+  state.sport = currentSport();
+  renderComparison(calculateComparison(state.comparison), state.sport);
+}
+
+function runComparison({ scroll = true } = {}) {
+  const values = formValues();
+  const issues = validateComparison(values);
+  if (issues.length) {
+    showError(`对比前请先补全数据：${issues.map(({ method, error }) => `${METHODS[method]}：${error}`).join(' ')}`);
+    $('#calculator-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+
+  clearError();
+  const numbers = numericValues(values);
+  state.comparison = numbers;
+  state.sport = currentSport();
+  state.method = currentMethod();
+  state.result = calculate({ method: state.method, ...numbers });
+  render(state.result, state.sport, state.method, { keepComparison: true, scroll: false });
+  renderComparison(calculateComparison(numbers), state.sport, { scroll });
+}
+
+document.querySelectorAll('input[name="method"]').forEach((input) => {
+  input.addEventListener('change', () => switchInputs(currentMethod()));
+});
+
+document.querySelectorAll('input[name="sport"]').forEach((input) => {
+  input.addEventListener('change', () => {
+    state.sport = currentSport();
+    if (state.result) render(state.result, state.sport, state.method, { scroll: false, keepComparison: Boolean(state.comparison) });
+    syncComparisonSport();
+  });
+});
+
+document.querySelector('#calculator-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  const method = currentMethod();
+  const values = formValues();
+  const error = validateMethod(method, values);
+  if (error) {
+    showError(error);
+    return;
+  }
+
+  clearError();
+  const numbers = numericValues(values);
+  state.result = calculate({ method, ...numbers });
+  state.method = method;
+  state.sport = currentSport();
+  render(state.result, state.sport, method, { keepComparison: Boolean(state.comparison), scroll: true });
+
+  if (state.comparison) {
+    if (validateComparison(values).length) {
+      hideComparison();
+    } else {
+      state.comparison = numbers;
+      renderComparison(calculateComparison(numbers), state.sport);
+    }
+  }
+});
+
+$('#compare-button').addEventListener('click', () => runComparison());
+$('#compare-result-button').addEventListener('click', () => runComparison());
+
+$('#reset-button').addEventListener('click', () => {
+  state.result = null;
+  state.method = null;
+  hideComparison();
+  clearError();
+  $('#results').classList.add('hidden');
+  $('#calculator-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+});

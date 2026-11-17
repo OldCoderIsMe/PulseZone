@@ -68,17 +68,22 @@
               <label class="field"><span>乳酸阈值心率</span><div class="input-wrap"><input id="lthr" type="number" min="100" max="230" value="168" inputmode="numeric" /><span>bpm</span></div></label>
               <div class="field field-note"><span>没有测试数据？</span><p>可用 30 分钟全力测试的平均心率作为近似值。</p></div>
             </div>
-            <button class="primary-button" type="submit">计算我的训练区间 <span>→</span></button>
+            <div class="action-row"><button class="primary-button" type="submit">计算我的训练区间 <span>→</span></button><button class="secondary-button" id="compare-button" type="button">对比三种方法 <span>＋</span></button></div>
             <p class="form-error" id="form-error" role="alert"></p>
           </div>
         </form>
       </section>
 
       <section class="results shell hidden" id="results" aria-live="polite">
-        <div class="results-heading"><div><p class="eyebrow">YOUR ZONES</p><h2 id="result-title">跑步 · 最大心率法</h2></div><button class="text-button" id="reset-button" type="button">重新计算 ↺</button></div>
+        <div class="results-heading"><div><p class="eyebrow">YOUR ZONES</p><h2 id="result-title">跑步 · 最大心率法</h2></div><div class="results-actions"><button class="secondary-button compact" id="compare-result-button" type="button">对比三种方法 <span>＋</span></button><button class="text-button" id="reset-button" type="button">重新计算 ↺</button></div></div>
         <div class="summary-grid" id="summary"></div>
         <div class="zones" id="zones"></div>
         <p class="disclaimer">PulseZone 提供训练规划参考，不替代医生或专业教练的建议。若你有心血管疾病、用药或异常不适，请先咨询专业人士。</p>
+
+        <section class="comparison hidden" id="comparison" aria-labelledby="comparison-title">
+          <div class="comparison-heading"><div><p class="eyebrow">METHOD COMPARISON</p><h2 id="comparison-title">三种方法，放在同一张图里看</h2></div><p class="section-meta" id="comparison-sport">跑步 · 同一组数据 · Z1–Z5 并列对比</p></div>
+          <div class="comparison-grid" id="comparison-grid"></div>
+        </section>
       </section>
 
       <section class="how-it-works shell">
