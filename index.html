@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101010" />
+    <meta name="description" content="PulseZone：为跑步、骑行和游泳计算个性化心率训练区间。" />
+    <title>PulseZone — Train by your numbers.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="PulseZone 首页"><span class="brand-mark">P</span><span>PulseZone</span></a>
+      <span class="header-note">TRAIN SMARTER</span>
+    </header>
+
+    <main id="top">
+      <section class="hero shell">
+        <div class="hero-copy">
+          <p class="eyebrow">HEART RATE TRAINING, SIMPLIFIED</p>
+          <h1>让每一次训练，<br /><em>都在正确的区间。</em></h1>
+          <p class="hero-text">根据你的运动场景和身体数据，快速生成清晰、可执行的心率训练区间。</p>
+        </div>
+        <div class="hero-ring" aria-hidden="true"><span>TRAIN<br /><strong>ON</strong><br />PURPOSE</span></div>
+      </section>
+
+      <section class="calculator shell" aria-labelledby="calculator-title">
+        <div class="section-heading">
+          <div><p class="eyebrow">CALCULATOR</p><h2 id="calculator-title">找到你的训练区间</h2></div>
+          <p class="section-meta">三种方法 · 三种运动 · 一个清晰答案</p>
+        </div>
+
+        <form id="calculator-form" novalidate>
+          <div class="control-grid">
+            <fieldset class="control-group sport-control">
+              <legend>选择运动</legend>
+              <div class="option-row" role="radiogroup" aria-label="运动场景">
+                <label class="sport-option active"><input type="radio" name="sport" value="run" checked /><span class="sport-icon">↗</span><span>跑步</span></label>
+                <label class="sport-option"><input type="radio" name="sport" value="ride" /><span class="sport-icon">⌁</span><span>骑行</span></label>
+                <label class="sport-option"><input type="radio" name="sport" value="swim" /><span class="sport-icon">≈</span><span>游泳</span></label>
+              </div>
+            </fieldset>
+
+            <fieldset class="control-group method-control">
+              <legend>计算方法</legend>
+              <div class="method-grid" role="radiogroup" aria-label="计算方法">
+                <label class="method-option active"><input type="radio" name="method" value="max" checked /><span class="method-number">01</span><span><strong>最大心率法</strong><small>适合快速建立基准</small></span></label>
+                <label class="method-option"><input type="radio" name="method" value="hrr" /><span class="method-number">02</span><span><strong>储备心率法</strong><small>结合静息心率，更个性化</small></span></label>
+                <label class="method-option"><input type="radio" name="method" value="lthr" /><span class="method-number">03</span><span><strong>乳酸阈值法</strong><small>适合有测试数据的训练者</small></span></label>
+              </div>
+            </fieldset>
+          </div>
+
+          <div class="input-panel">
+            <div class="input-intro"><span class="step">01</span><div><h3>输入你的数据</h3><p id="method-help">使用年龄估算最大心率。推荐使用 Tanaka 公式：208 − 0.7 × 年龄。</p></div></div>
+            <div class="inputs" id="inputs-max">
+              <label class="field"><span>年龄</span><div class="input-wrap"><input id="age" type="number" min="13" max="100" value="30" inputmode="numeric" /><span>岁</span></div></label>
+              <label class="field"><span>最大心率公式</span><select id="max-formula"><option value="tanaka">Tanaka · 208 − 0.7 × 年龄</option><option value="fox">Fox · 220 − 年龄</option></select></label>
+            </div>
+            <div class="inputs hidden" id="inputs-hrr">
+              <label class="field"><span>最大心率</span><div class="input-wrap"><input id="max-hr" type="number" min="100" max="240" value="187" inputmode="numeric" /><span>bpm</span></div></label>
+              <label class="field"><span>静息心率</span><div class="input-wrap"><input id="resting-hr" type="number" min="30" max="120" value="58" inputmode="numeric" /><span>bpm</span></div></label>
+            </div>
+            <div class="inputs hidden" id="inputs-lthr">
+              <label class="field"><span>乳酸阈值心率</span><div class="input-wrap"><input id="lthr" type="number" min="100" max="230" value="168" inputmode="numeric" /><span>bpm</span></div></label>
+              <div class="field field-note"><span>没有测试数据？</span><p>可用 30 分钟全力测试的平均心率作为近似值。</p></div>
+            </div>
+            <button class="primary-button" type="submit">计算我的训练区间 <span>→</span></button>
+            <p class="form-error" id="form-error" role="alert"></p>
+          </div>
+        </form>
+      </section>
+
+      <section class="results shell hidden" id="results" aria-live="polite">
+        <div class="results-heading"><div><p class="eyebrow">YOUR ZONES</p><h2 id="result-title">跑步 · 最大心率法</h2></div><button class="text-button" id="reset-button" type="button">重新计算 ↺</button></div>
+        <div class="summary-grid" id="summary"></div>
+        <div class="zones" id="zones"></div>
+        <p class="disclaimer">PulseZone 提供训练规划参考，不替代医生或专业教练的建议。若你有心血管疾病、用药或异常不适，请先咨询专业人士。</p>
+      </section>
+
+      <section class="how-it-works shell">
+        <div class="section-heading"><div><p class="eyebrow">THE BASICS</p><h2>三种方法，按你的训练阶段选择</h2></div></div>
+        <div class="method-cards">
+          <article><span>01</span><h3>最大心率法</h3><p>用年龄估算最大心率，再按百分比划分训练强度。简单直接，适合快速建立训练基准。</p></article>
+          <article><span>02</span><h3>储备心率法</h3><p>把最大心率与静息心率的差值纳入计算，对不同基础和恢复状态更敏感。</p></article>
+          <article><span>03</span><h3>乳酸阈值法</h3><p>围绕你能持续维持的阈值心率设定区间，适合已有测试数据和训练经验的人。</p></article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer shell"><span>PulseZone</span><span>TRAIN WITH INTENT.</span><span>© 2026</span></footer>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

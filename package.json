@@ -1,0 +1,8 @@
+{
+  "name": "pulsezone",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Heart-rate training zone calculator for running, cycling and swimming.",
+  "scripts": {"test": "node --test tests/calculations.test.mjs"},
+  "type": "module"
+}
