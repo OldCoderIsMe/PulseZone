@@ -34,8 +34,9 @@ npm test
 - 合并到 `main` 后会自动发布到 GitHub Pages；
 - 在 GitHub 的 **Actions** 页面打开对应运行记录，可在 **Artifacts** 下载预览文件；
 - 首次发布前，在仓库 **Settings → Pages** 将发布来源设置为 **GitHub Actions**。
+- 当前仓库为私有仓库；GitHub 当前账号方案不支持私有仓库 Pages，因此私有状态下使用 Actions 的 Artifact 预览。将仓库改为公开或升级 GitHub 方案后，合并到 `main` 即可自动部署 Pages。
 
-发布后，工作流运行详情页会显示 GitHub Pages 的预览地址。
+发布后，工作流运行详情页会显示 GitHub Pages 的预览地址；私有仓库则可在运行详情页的 **Artifacts** 下载预览包。
 
 ## 说明
 
