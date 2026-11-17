@@ -138,6 +138,9 @@ test('result page flow renders single method, comparison, sport switching and va
   assert.match(dom.select('#comparison-sport').textContent, /游泳/);
   assert.match(grid.innerHTML, /冲刺间歇/);
   assert.equal(comparison.classList.contains('hidden'), false);
+  assert.match(grid.innerHTML, /94–112/);
+  assert.match(grid.innerHTML, /123–135/);
+  assert.match(grid.innerHTML, /109–143/);
 
   dom.select('#lthr').value = '';
   dom.select('#compare-result-button').dispatch('click');
@@ -148,6 +151,15 @@ test('result page flow renders single method, comparison, sport switching and va
   dom.select('#compare-result-button').dispatch('click');
   assert.equal(error.textContent, '');
   assert.equal(count(grid.innerHTML, /class="comparison-card"/g), 3);
+
+  dom.select('#age').value = '50';
+  dom.select('#compare-result-button').dispatch('click');
+  assert.equal(title.textContent, '游泳 · 最大心率法');
+  assert.match(dom.select('#summary').innerHTML, /173/);
+  assert.match(grid.innerHTML, /50 岁/);
+  assert.match(grid.innerHTML, /173 bpm/);
+  assert.doesNotMatch(grid.innerHTML, /30 岁/);
+  dom.select('#age').value = '30';
 
   dom.select('#reset-button').dispatch('click');
   assert.equal(results.classList.contains('hidden'), true);

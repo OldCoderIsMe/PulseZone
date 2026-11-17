@@ -110,10 +110,8 @@ function runComparison({ scroll = true } = {}) {
   const numbers = numericValues(values);
   state.comparison = numbers;
   state.sport = currentSport();
-  if (!state.result) {
-    state.method = currentMethod();
-    state.result = calculate({ method: state.method, ...numbers });
-  }
+  state.method = currentMethod();
+  state.result = calculate({ method: state.method, ...numbers });
   render(state.result, state.sport, state.method, { keepComparison: true, scroll: false });
   renderComparison(calculateComparison(numbers), state.sport, { scroll });
 }
