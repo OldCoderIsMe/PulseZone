@@ -91,6 +91,19 @@ export function validateComparison(values = {}) {
     .filter(({ error }) => error);
 }
 
+export const COMPARISON_FIELDS = [
+  { key: 'age', label: '年龄' },
+  { key: 'maxHr', label: '最大心率' },
+  { key: 'restingHr', label: '静息心率' },
+  { key: 'lthr', label: '乳酸阈值心率' },
+];
+
+export function missingComparisonFields(values = {}) {
+  return COMPARISON_FIELDS
+    .filter(({ key }) => Number.isNaN(toNumber(values[key])))
+    .map(({ label }) => label);
+}
+
 function basisFor(method, values, maxHrBase, base) {
   if (method === 'max') {
     return [

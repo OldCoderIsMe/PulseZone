@@ -7,6 +7,7 @@ import {
   calculate,
   calculateComparison,
   maxHrFromAge,
+  missingComparisonFields,
   sportDescriptions,
   validateComparison,
   validateMethod,
@@ -113,4 +114,22 @@ test('result page exposes the comparison entry and side-by-side container', () =
   assert.match(html, /id="comparison-grid"/);
   assert.match(html, /id="comparison-sport"/);
   assert.match(html, /id="compare-button"/);
+});
+
+test('comparison asks for every field and never falls back to defaults', () => {
+  assert.deepEqual(missingComparisonFields({}), ['年龄', '最大心率', '静息心率', '乳酸阈值心率']);
+  assert.deepEqual(missingComparisonFields({ age: '30', maxHr: '', restingHr: '58', lthr: '168' }), ['最大心率']);
+  assert.deepEqual(missingComparisonFields(DEFAULTS), []);
+
+  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  for (const id of ['age', 'max-hr', 'resting-hr', 'lthr']) {
+    assert.doesNotMatch(html, new RegExp(`id="${id}"[^>]*\\svalue=`));
+  }
+});
+
+test('action buttons share one baseline row', () => {
+  const css = readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
+  assert.match(css, /\.action-row\{[^}]*align-items:stretch/);
+  assert.match(css, /\.action-row\{[^}]*margin-top:27px/);
+  assert.doesNotMatch(css, /\.primary-button\{margin-top:(?!0)/);
 });
