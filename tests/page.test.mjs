@@ -185,3 +185,39 @@ test('result page flow renders single method, comparison, sport switching and va
   assert.equal(comparison.classList.contains('hidden'), false);
   assert.equal(count(grid.innerHTML, /class="comparison-card"/g), 3);
 });
+
+test('comparison prompts for every field instead of using default data', () => {
+  const error = dom.select('#form-error');
+  const comparison = dom.select('#comparison');
+  const grid = dom.select('#comparison-grid');
+
+  for (const selector of ['#age', '#max-hr', '#resting-hr', '#lthr']) dom.select(selector).value = '';
+  comparison.classList.add('hidden');
+  const previousGrid = grid.innerHTML;
+
+  dom.select('#compare-result-button').dispatch('click');
+  assert.equal(comparison.classList.contains('hidden'), true);
+  assert.equal(grid.innerHTML, previousGrid);
+  assert.match(error.textContent, /年龄/);
+  assert.match(error.textContent, /最大心率/);
+  assert.match(error.textContent, /静息心率/);
+  assert.match(error.textContent, /乳酸阈值心率/);
+  assert.match(error.textContent, /请先填写/);
+  for (const panel of ['#inputs-max', '#inputs-hrr', '#inputs-lthr']) {
+    assert.equal(dom.select(panel).classList.contains('hidden'), false);
+  }
+
+  dom.select('#age').value = '30';
+  dom.select('#max-hr').value = '187';
+  dom.select('#resting-hr').value = '58';
+  dom.select('#compare-result-button').dispatch('click');
+  assert.doesNotMatch(error.textContent, /年龄/);
+  assert.match(error.textContent, /乳酸阈值心率/);
+  assert.equal(comparison.classList.contains('hidden'), true);
+
+  dom.select('#lthr').value = '168';
+  dom.select('#compare-result-button').dispatch('click');
+  assert.equal(error.textContent, '');
+  assert.equal(comparison.classList.contains('hidden'), false);
+  assert.equal(count(grid.innerHTML, /class="comparison-card"/g), 3);
+});

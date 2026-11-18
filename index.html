@@ -57,15 +57,15 @@
           <div class="input-panel">
             <div class="input-intro"><span class="step">01</span><div><h3>输入你的数据</h3><p id="method-help">使用年龄估算最大心率。推荐使用 Tanaka 公式：208 − 0.7 × 年龄。</p></div></div>
             <div class="inputs" id="inputs-max">
-              <label class="field"><span>年龄</span><div class="input-wrap"><input id="age" type="number" min="13" max="100" value="30" inputmode="numeric" /><span>岁</span></div></label>
+              <label class="field"><span>年龄</span><div class="input-wrap"><input id="age" type="number" min="13" max="100" placeholder="如 30" inputmode="numeric" /><span>岁</span></div></label>
               <label class="field"><span>最大心率公式</span><select id="max-formula"><option value="tanaka">Tanaka · 208 − 0.7 × 年龄</option><option value="fox">Fox · 220 − 年龄</option></select></label>
             </div>
             <div class="inputs hidden" id="inputs-hrr">
-              <label class="field"><span>最大心率</span><div class="input-wrap"><input id="max-hr" type="number" min="100" max="240" value="187" inputmode="numeric" /><span>bpm</span></div></label>
-              <label class="field"><span>静息心率</span><div class="input-wrap"><input id="resting-hr" type="number" min="30" max="120" value="58" inputmode="numeric" /><span>bpm</span></div></label>
+              <label class="field"><span>最大心率</span><div class="input-wrap"><input id="max-hr" type="number" min="100" max="240" placeholder="如 187" inputmode="numeric" /><span>bpm</span></div></label>
+              <label class="field"><span>静息心率</span><div class="input-wrap"><input id="resting-hr" type="number" min="30" max="120" placeholder="如 58" inputmode="numeric" /><span>bpm</span></div></label>
             </div>
             <div class="inputs hidden" id="inputs-lthr">
-              <label class="field"><span>乳酸阈值心率</span><div class="input-wrap"><input id="lthr" type="number" min="100" max="230" value="168" inputmode="numeric" /><span>bpm</span></div></label>
+              <label class="field"><span>乳酸阈值心率</span><div class="input-wrap"><input id="lthr" type="number" min="100" max="230" placeholder="如 168" inputmode="numeric" /><span>bpm</span></div></label>
               <div class="field field-note"><span>没有测试数据？</span><p>可用 30 分钟全力测试的平均心率作为近似值。</p></div>
             </div>
             <div class="action-row"><button class="primary-button" type="submit">计算我的训练区间 <span>→</span></button><button class="secondary-button" id="compare-button" type="button">对比三种方法 <span>＋</span></button></div>

@@ -4,6 +4,7 @@ import {
   SPORTS,
   calculate,
   calculateComparison,
+  missingComparisonFields,
   sportDescriptions,
   validateComparison,
   validateMethod,
@@ -81,6 +82,10 @@ function renderComparison(results, sport, { scroll = false } = {}) {
   if (scroll) $('#comparison').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+function showAllInputs() {
+  ['max', 'hrr', 'lthr'].forEach((name) => $(`#inputs-${name}`).classList.remove('hidden'));
+}
+
 function switchInputs(method) {
   ['max', 'hrr', 'lthr'].forEach((name) => $(`#inputs-${name}`).classList.toggle('hidden', name !== method));
   const help = {
@@ -99,9 +104,17 @@ function syncComparisonSport() {
 
 function runComparison({ scroll = true } = {}) {
   const values = formValues();
+  const missing = missingComparisonFields(values);
+  if (missing.length) {
+    showAllInputs();
+    showError(`对比三种方法需要完整数据，请先填写：${missing.join('、')}。`);
+    $('#calculator-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+
   const issues = validateComparison(values);
   if (issues.length) {
-    showError(`对比前请先补全数据：${issues.map(({ method, error }) => `${METHODS[method]}：${error}`).join(' ')}`);
+    showError(`对比三种方法的数据有误：${issues.map(({ method, error }) => `${METHODS[method]}：${error}`).join(' ')}`);
     $('#calculator-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
     return;
   }
